@@ -31,8 +31,10 @@ use POData\OperationContext\IOperationContext;
 use POData\OperationContext\ServiceHost;
 use POData\OperationContext\Web\Illuminate\IlluminateOperationContext;
 use POData\Providers\Metadata\ResourceEntityType;
+use POData\Providers\Metadata\ResourceProperty;
 use POData\Providers\Metadata\ResourceSetWrapper;
 use POData\Providers\Metadata\SimpleMetadataProvider;
+use POData\Providers\Metadata\Type\DateTime;
 use POData\Providers\ProvidersWrapper;
 use POData\Providers\Query\IQueryProvider;
 use POData\Providers\Query\QueryResult;
@@ -839,5 +841,31 @@ class IronicSerialiserTest extends SerialiserTestBase
 
         $result = $ironic->getConcreteTypeFromAbstractType($abstractType, $payloadClass);
         $this->assertEquals($result, $concreteType);
+    }
+
+    public function testSerialiseTooEarlyDate()
+    {
+        // OData DateTime epoch is midnight, jan 1, 1753, UTC so times before that are being pushed up to that minimum
+        $date = new \DateTime('1752-12-31');
+
+        $query = new QueryResult();
+        $query->results = $date;
+
+        $iType = new DateTime();
+        $rType = m::mock(ResourceProperty::class);
+        $rType->shouldReceive('getName')->andReturn('rType');
+        $rType->shouldReceive('getResourceType->getInstanceType')->andReturn($iType);
+        $rType->shouldReceive('getInstanceType')->andReturn($iType);
+
+        $ironic = m::mock(IronicSerialiserDummy::class)->makePartial();
+
+        $result = $ironic->writeTopLevelPrimitive($query, $rType);
+        $this->assertTrue($result instanceof ODataPropertyContent);
+        $this->assertEquals(1, count($result->properties));
+        $payload = $result->properties['rType'];
+
+        $expected = '1753-01-01T00:00:00+00:00';
+        $actual = $payload->value;
+        $this->assertEquals($expected, $actual);
     }
 }

@@ -847,7 +847,12 @@ class IronicSerialiser implements IObjectSerialiser
                 $stringValue = base64_encode($primitiveValue);
                 break;
             case $type instanceof DateTime && $primitiveValue instanceof \DateTime:
-                $stringValue = $primitiveValue->format(\DateTime::ATOM);
+                $year = intval($primitiveValue->format('Y'));
+                if (1753 > $year) {
+                    $stringValue = '1753-01-01T00:00:00+00:00';
+                } else {
+                    $stringValue = $primitiveValue->format(\DateTime::ATOM);
+                }
                 break;
             default:
                 $stringValue = strval($primitiveValue);
