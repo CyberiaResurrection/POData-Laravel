@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
 use Mockery\Mock;
+use POData\Providers\Metadata\Type\DateTime;
 
 trait MetadataTrait
 {
@@ -31,6 +32,14 @@ trait MetadataTrait
     protected static $tableColumnsDoctrine = [];
     protected static $tableData = [];
     protected static $dontCastTypes = ['object', 'array', 'collection', 'int'];
+    protected static $defaultValues = ['integer' => 0];
+
+    public static function bootMetadataTrait()
+    {
+        // default non-nullable dateTime to OData epoch
+        $dt = new \DateTime('1753-01-01');
+        self::$defaultValues['datetime'] = $dt;
+    }
 
     /*
      * Retrieve and assemble this model's metadata for OData packaging
@@ -69,7 +78,6 @@ trait MetadataTrait
             $key = trim($key, '`');
             $foo[$key] = $val;
         }
-
         foreach ($columns as $column) {
             // Doctrine schema manager returns columns with lowercased names
             $rawColumn = $foo[strtolower($column)];
@@ -78,6 +86,10 @@ trait MetadataTrait
             $rawType = $rawColumn->getType();
             $type = $rawType->getName();
             $default = $this->$column;
+            if (null === $default && false === $nullable && array_key_exists($type, self::$defaultValues)) {
+                $default = self::$defaultValues[$type];
+            }
+
             $tableData[$column] = ['type' => $type,
                 'nullable' => $nullable,
                 'fillable' => $fillable,

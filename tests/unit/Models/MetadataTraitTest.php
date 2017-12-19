@@ -3,7 +3,11 @@
 namespace AlgoWeb\PODataLaravel\Models;
 
 use AlgoWeb\PODataLaravel\Models\TestCase as TestCase;
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Types\IntegerType;
+use Doctrine\DBAL\Types\Type;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\Facades\App;
 use Mockery as m;
 use POData\Providers\Metadata\SimpleMetadataProvider;
@@ -136,10 +140,10 @@ class MetadataTraitTest extends TestCase
     public function testMetadataGenerationWithGetter()
     {
         $expected = [];
-        $expected['id'] = ['type' => 'integer', 'nullable' => false, 'fillable' => false, 'default' => null];
+        $expected['id'] = ['type' => 'integer', 'nullable' => false, 'fillable' => false, 'default' => 0];
         $expected['name'] = ['type' => 'string', 'nullable' => false, 'fillable' => true, 'default' => null];
-        $expected['added_at'] = ['type' => 'integer', 'nullable' => false, 'fillable' => true, 'default' => null];
-        $expected['weight'] = ['type' => 'integer', 'nullable' => false, 'fillable' => true, 'default' => null];
+        $expected['added_at'] = ['type' => 'integer', 'nullable' => false, 'fillable' => true, 'default' => 0];
+        $expected['weight'] = ['type' => 'integer', 'nullable' => false, 'fillable' => true, 'default' => 0];
         $expected['code'] = ['type' => 'string', 'nullable' => false, 'fillable' => true, 'default' => null];
         $expected['WeightCode'] = ['type' => 'text', 'nullable' => true, 'fillable' => false, 'default' => ''];
 
